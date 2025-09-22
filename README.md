@@ -10,5 +10,23 @@ To tackle this problem, I use ResNet50, a deep convolutional neutal network know
 
 The final model reach validation accuracy at 88.4% with 0.88 F1 score - showing that the model is balanced and performes consitently on three classes of artworks
 
+
+## Web Application
+You can try the classifier online:
+[MoMA Artworks Classifier – Streamlit App](https://moma-artworks-classifier-resnet50-cnn.streamlit.app/)
+
+## Inspiration
 The project was inspired by [Alaeddine Grine’s article: Artwork Classification in PyTorch](https://medium.com/@alaeddine.grine/artwork-classification-in-pytorch-b4f3395b877e). In his work, Grine focused on classifying artworks by artistic style (e.g., painting, mural, sculpture) using a curated dataset that spans from the 14th to the 21st century. His project showed how deep learning can be applied to art history, helping us understand the evolution of artistic styles.
 
+## Run locally
+```bash
+git clone https://github.com/YourUsername/moma-artworks-classifier.git
+cd moma-artworks-classifier
+
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+venv\Scripts\activate     # Windows
+pip install -r requirements.txt
+
+streamlit run app.py
+```
