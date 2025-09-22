@@ -1,0 +1,5 @@
+{
+    "model": "resnet50",
+    "num_classes": 3,
+    "notes": "Fine-tuned layer4 + fc on MoMA dataset"
+}
