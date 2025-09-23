@@ -3,6 +3,7 @@
 #########################
 
 import streamlit as st
+import pandas as pd
 import torch
 import torchvision.transforms as transforms
 import torchvision.models as models
@@ -15,9 +16,26 @@ import io
 # SETTINGS
 #########################
 model_file = "models/momaclassifier_resnet50.pt"
+image_csv = "demo_artworks.csv"
 image_folder = "demo_images"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class_index = {"Drawing": 0, "Photograph": 1, "Print": 2}
+
+
+#########################
+# LOAD DEMO IMAGE CSV
+#########################
+@st.cache_data
+def load_metadata():
+    if os.path.exists(image_csv):
+        df = pd.read_csv(image_csv)
+        return df
+    else:
+        st.warning("No metadata CSV file found.")
+        return pd.DataFrame()
+
+
+metadata_df = load_metadata()
 
 
 #########################
@@ -81,28 +99,25 @@ def predict_image_class(image_path, model, transform, class_index, device):
 st.title("MoMA ARTWORKS CLASSIFIER")
 st.write("Classify artworks into Drawing, Photograph, and Print")
 
-# side panel
-st.sidebar.header("Options")
-
-# select from collections
-
 # Choose from collection
 available_images = [
     f for f in os.listdir(image_folder) if f.lower().endswith((".jpg", ".jpeg", ".png"))
 ]
 
-selected_image = None
-if available_images:
-    selected_image = st.sidebar.selectbox(
-        "Choose from Collection", ["None"] + available_images
-    )
-else:
-    st.sidebar.warning("No images found in the demo_images folder.")
+col1, col2 = st.columns([0.75, 1.25])
+with col1:
+    selected_image = None
+    if available_images:
+        selected_image = st.selectbox(
+            "Choose from Collection", ["None"] + available_images
+        )
+    else:
+        st.sidebar.warning("No images found in the demo_images folder.")
 
-# Upload image
-uploaded_file = st.sidebar.file_uploader(
-    "Or Upload Your Own Image", type=["jpg", "jpeg", "png"]
-)
+with col2:
+    uploaded_file = st.file_uploader(
+        "Or Upload Your Own Image", type=["jpg", "jpeg", "png"]
+    )
 
 # prediction
 if uploaded_file is not None:
@@ -110,24 +125,44 @@ if uploaded_file is not None:
     image, predicted_class, probabilities = predict_image_class(
         uploaded_file, model, transform, class_index, device
     )
+    object_id = None
 
 elif selected_image and selected_image != "None":
-    st.info(f"Using selected image: {selected_image}")
+    st.info(f"Using image in collections: {selected_image}")
     image_path = os.path.join(image_folder, selected_image)
     image, predicted_class, probabilities = predict_image_class(
         image_path, model, transform, class_index, device
     )
+    # ObjectID from filename
+    object_id = selected_image.split(".")[0]
 
 else:
-    image, predicted_class, probabilities = None, None, None
+    image, predicted_class, probabilities, object_id = None, None, None, None
 
 # show results
 if image:
-    st.image(image, caption="Input Image", width=300)
-    st.subheader("Prediction Results (Probabilities)")
-    for cls, prob in probabilities.items():
-        st.write(f"{cls}: {prob:.3f}")
 
-    st.success(f"Final Predicted Class: **{predicted_class}**")
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        st.image(image, caption="Input Image", use_container_width=True)
+
+        # Show artwork info if available
+        if object_id and not metadata_df.empty:
+            art_info = metadata_df[metadata_df["ObjectID"] == int(object_id)]
+            if not art_info.empty:
+                st.subheader("Artwork Information")
+                for col in ["Title", "Artist", "Classification", "CreditLine", "URL"]:
+                    if col in art_info.columns:
+                        st.write(f"**{col}:** {art_info.iloc[0][col]}")
+            else:
+                st.info("No metadata found for this artwork.")
+
+    with col2:
+        st.subheader("Prediction Results")
+        for cls, prob in probabilities.items():
+            st.write(f"**{cls}:** {prob:.3f}")
+
+        st.success(f"Final Predicted Class: **{predicted_class}**")
 else:
-    st.warning("Please choose an image from the sidebar or upload your own.")
+    st.warning("Please choose an image or upload your own.")
