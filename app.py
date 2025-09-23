@@ -97,7 +97,26 @@ def predict_image_class(image_path, model, transform, class_index, device):
 # UI
 #########################
 st.title("MoMA ARTWORKS CLASSIFIER")
-st.write("Classify artworks into Drawing, Photograph, and Print")
+st.markdown(
+    """
+<div style="background-color:lightgray; padding:15px; border-radius:5px; color:black">
+<b>Classify artworks into Drawing, Photograph, and Print.</b><br><br>
+This app uses a <b>pretrained ResNet50</b>, a type of convolutional neural network that has already learned to recognize general patterns in images, like shapes, textures, and edges.<br><br>
+To adapt it to artworks, I <b>freeze the first three layers</b>, which retain the general visual features, and train the fourth and fully connected layers on the MoMA artwork dataset. This helps the model focus on recognizing differences between drawings, photographs, and prints while still using the knowledge it already has from analyzing millions of images.
+</div>
+""",
+    unsafe_allow_html=True,
+)
+# st.write(
+#     """
+# Classify artworks into **Drawing, Photograph, and Print**.
+
+# This app uses a **pretrained ResNet50**, a type of convolutional neural network that has already learned to recognize general patterns in images, like shapes, textures, and edges.
+
+# To adapt it to artworks, I **freeze the first three layers**, which retain the general visual features, and train the the forth and fully connected layers on MoMA artwork dataset. This helps the model focus on recognizing differences between drawings, photographs, and prints while still using the knowledge it already has from analyzing millions of images.
+# """
+# )
+
 
 # Choose from collection
 available_images = [
